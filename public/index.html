@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>国運営ゲーム</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      /* ここに提供されたCSSを貼り付けます */
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f4f7fa;
+        color: #333;
+        margin: 20px auto;
+        max-width: 960px;
+        padding: 0 15px 40px 15px;
+      }
+      h1 {
+        text-align: center;
+        color: #1e3a8a;
+        margin-bottom: 15px;
+      }
+      h2,
+      h3 {
+        color: #1e40af;
+        margin-top: 30px;
+        margin-bottom: 10px;
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        padding: 6px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-size: 14px;
+        width: auto;
+        min-width: 100px;
+        margin-right: 10px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        padding: 7px 14px;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.25s ease;
+      }
+      button:hover {
+        background-color: #1d4ed8;
+      }
+      #map {
+        height: 600px;
+        width: 100%;
+        margin-top: 20px;
+        border: 2px solid #2563eb;
+        border-radius: 6px;
+        box-shadow: 0 3px 10px rgb(37 99 235 / 0.3);
+      }
+      #spyResult {
+        background: #e0e7ff;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-top: 10px;
+        max-width: 350px;
+        box-shadow: 0 2px 5px rgb(99 102 241 / 0.2);
+      }
+      #newsList {
+        list-style: none;
+        padding-left: 0;
+        max-height: 180px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 10px;
+        box-shadow: inset 0 0 5px #cbd5e1;
+      }
+      #newsList li {
+        padding: 6px 4px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+      }
+      #newsList li:last-child {
+        border-bottom: none;
+      }
+      #modeStatus {
+        padding: 8px 12px;
+        font-weight: 700;
+        color: #fff;
+        background-color: #dc2626;
+        border-radius: 6px;
+        margin-top: 15px;
+        text-align: center;
+      }
+      div > label,
+      div > input,
+      div > select,
+      div > button {
+        vertical-align: middle;
+      }
+      /* フォームのグループを少し間隔あける */
+      div {
+        margin-bottom: 15px;
+      }
+      /* レスポンシブ対応 */
+      @media (max-width: 600px) {
+        body {
+          padding: 10px 10px 30px 10px;
+          margin: 0 auto;
+          max-width: 100%;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+          width: 100%;
+          margin-bottom: 8px;
+        }
+        button {
+          width: 100%;
+          margin-bottom: 8px;
+        }
+        #spyResult,
+        #newsList {
+          max-width: 100%;
+        }
+      }
+      #onlineUsers {
+        background: #e6f0ff;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-top: 15px;
+        box-shadow: 0 2px 5px rgb(66 153 225 / 0.2);
+      }
+      #onlineUsers h3 {
+        color: #2b6cb0;
+        margin-top: 0;
+        margin-bottom: 8px;
+      }
+      #onlineUsersList {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      #onlineUsersList li {
+        display: inline-block;
+        background-color: #cce0ff;
+        border-radius: 3px;
+        padding: 3px 7px;
+        margin: 3px;
+        color: #2c5282;
+      }
+      /* National Focus specific styles */
+      .focus-list {
+        list-style: none;
+        padding: 0;
+      }
+      .focus-item {
+        background-color: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .focus-item h4 {
+        margin-top: 0;
+        margin-bottom: 5px;
+        color: #1e40af;
+      }
+      .focus-item p {
+        font-size: 13px;
+        color: #4a5568;
+        margin-bottom: 8px;
+      }
+      .focus-item .cost {
+        font-size: 12px;
+        color: #718096;
+        margin-bottom: 8px;
+      }
+      .focus-item button {
+        float: right;
+        margin-top: -5px;
+      }
+      #currentFocusStatus {
+        background-color: #d1e7dd; /* Light green for active */
+        border: 1px solid #b3d1c1;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        color: #0f5132;
+      }
+      #currentFocusStatus.no-focus {
+        background-color: #f8d7da; /* Light red for no active focus */
+        border-color: #f5c2c7;
+        color: #842029;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>国運営ゲーム</h1>
+    <section>
+      <h2>国運営ゲームの遊び方</h2>
+      <p>
+        このゲームでは、あなたが一国のリーダーとなり、領土の拡大・軍隊の増強・お金の管理などを行います。以下のポイントにそってプレイしてみましょう！
+      </p>
+      <ul>
+        <li>
+          <strong>国の登録:</strong>
+          地図上の灰色の「未所属地域」をクリックして、まずは自分の国を登録しましょう（最初の1つ目は無料で登録できます）
+        </li>
+        <li>
+          <strong>自分の国の情報を見る:</strong>
+          地図上で自分の領土（自分の色）をクリックすると、国名・お金・軍隊の数などを確認できます。他の国をクリックすると、その国の名前もわかります。
+        </li>
+        <li>
+          <strong>人口とお金:</strong>
+          領土を購入すると人口が増え（+1000）、人口に応じてお金が自動で増えていきます（人口
+          × 0.01円）。ただし、領土を奪われると人口が減ってしまいます。
+        </li>
+        <li>
+          <strong>資源 (NEW):</strong>
+          各領土は「石油」と「鉄」を生産します。所有する領土から定期的に資源が供給されます。
+        </li>
+        <li>
+          <strong>領土の購入:</strong>
+          灰色の未所属地域を1つ2000円で購入して、領土を広げましょう。
+        </li>
+        <li>
+          <strong>軍隊の増強:</strong>
+          お金に加えて、石油と鉄を消費して歩兵、戦車、機械化歩兵を購入し、軍事力を高めましょう。
+        </li>
+        <li>
+          <strong>爆撃機:</strong>
+          爆撃機（120円、石油・鉄消費あり）を購入し、敵領土を爆撃して防衛軍に損害を与えることができます。
+        </li>
+        <li>
+          <strong>ミサイル:</strong>
+          ミサイル（10000円、石油・鉄消費あり）を購入し、敵領土に発射することで人口にダメージを与え、防衛軍を半壊させることができます。
+        </li>
+        <li>
+          <strong>スパイ活動:</strong>
+          他国の国名を入力してスパイを送ると、その国の兵力やお金、そして石油や鉄の所持量を調査できます（※失敗の可能性もあります）。
+        </li>
+        <li>
+          <strong>貿易（援助）:</strong>
+          他国にお金や兵力、そして石油や鉄を渡すことができます。友好国との協力や支援に活用しましょう。
+        </li>
+        <li>
+          <strong>軍配置モード:</strong>
+          所持している軍隊を、自国の領土に均等に配置したり、手動で配置したりできます。配置していない地域は、敵に攻められると簡単に奪われてしまうかもしれません。
+        </li>
+        <li>
+          <strong>攻撃モード:</strong>
+          敵国の領土をクリックして攻撃を仕掛けます。勝つとその領土を自分のものにできます！
+        </li>
+        <li>
+          <strong>爆撃モード:</strong>
+          爆撃機を消費して、敵国の領土を爆撃し、防衛部隊に損害を与えます。
+        </li>
+        <li>
+          <strong>最新ニュース:</strong>
+          戦闘やスパイ活動など、ゲーム内で起きた出来事が速報として表示されます。こまめにチェックしましょう。
+        </li>
+      </ul>
+      <!-- チュートリアル開始ボタン -->
+      <button
+        id="startTutorialBtn"
+        onclick="startTutorial()"
+        style="
+          display: block;
+          margin: 20px auto;
+          padding: 15px 30px;
+          font-size: 20px;
+          font-weight: bold;
+          background-color: #10b981;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.1s;
+        "
+      >
+        🧭 はじめての方へ：チュートリアルを始める
+      </button>
+
+      <!-- チュートリアル表示エリア -->
+      <div
+        id="tutorialBox"
+        style="
+          display: none;
+          position: fixed;
+          top: 10%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 80%;
+          max-width: 500px;
+          background: white;
+          border: 2px solid #2563eb;
+          border-radius: 10px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+          z-index: 9999;
+          padding: 20px;
+        "
+      >
+        <div
+          id="tutorialText"
+          style="font-size: 16px; margin-bottom: 15px"
+        ></div>
+        <button onclick="nextTutorialStep()" style="float: right">
+          ▶ 次へ
+        </button>
+      </div>
+    </section>
+    <div>
+      登録する国名: <input id="nationNameInput" type="text" />
+      <button onclick="startRegisterNation()">国を登録</button>
+    </div>
+
+    <div>
+      <h3>軍隊増強</h3>
+      種類:
+      <select id="unitType">
+        <option value="infantry">歩兵 (30円, 1石油, 2鉄)</option>
+        <option value="tank">戦車 (70円, 3石油, 5鉄)</option>
+        <option value="mechanizedInfantry">
+          機械化歩兵 (50円, 2石油, 3鉄)
+        </option>
+        <option value="bomber">爆撃機 (90円, 5石油, 7鉄)</option>
+        <option value="missile">ミサイル (10000円, 50石油, 100鉄)</option>
+      </select>
+      数量: <input type="number" id="unitAmount" value="1" min="1" />
+      <button onclick="reinforce()">増強</button>
+    </div>
+    <h3>スパイ活動</h3>
+    ターゲット国名: <input type="text" id="spyTargetNation" />
+    <button onclick="spy()">スパイする</button>
+
+    <div id="spyResult" style="margin-top: 10px; font-weight: bold"></div>
+
+    <h3>貿易</h3>
+    相手国名: <input type="text" id="targetNationName" />
+    資源:
+    <select id="resourceType">
+      <option value="money">お金</option>
+      <option value="infantry">歩兵</option>
+      <option value="tank">戦車</option>
+      <option value="mechanizedInfantry">機械化歩兵</option>
+      <option value="bomber">爆撃機</option>
+      <option value="missile">ミサイル</option>
+      <option value="oil">石油</option>
+      <option value="iron">鉄</option>
+    </select>
+    数量: <input type="number" id="resourceAmount" min="1" value="10" />
+    <button onclick="sendResourcesByName()">送る</button>
+    <h3>領土譲渡モード</h3>
+    譲渡先国名: <input type="text" id="transferNationName" />
+    <button onclick="startTransferMode()">譲渡モード開始</button>
+    <button onclick="endTransferMode()">譲渡モード終了</button>
+    <p>譲渡したい領土を地図でクリックしてください。</p>
+    <h3>同盟管理</h3>
+    <div>
+      同盟申請先国名: <input type="text" id="allianceTargetNationName" />
+      <button onclick="requestAlliance()">同盟申請</button>
+    </div>
+    <div>
+      <h4>あなたへの同盟申請</h4>
+      <ul id="pendingAllianceRequests"></ul>
+    </div>
+    <div>
+      <h4>現在の同盟国</h4>
+      <ul id="currentAlliances"></ul>
+    </div>
+
+    <h3>軍配置モード</h3>
+    歩兵数:
+    <input type="number" id="deployInfantry" value="0" min="0" /> 戦車数:
+    <input type="number" id="deployTank" value="0" min="0" /> 機械化歩兵数:
+    <input type="number" id="deployMechInf" value="0" min="0" />
+    <button onclick="autoDeploy()">均等に配置</button>
+    <button onclick="startDeployMode()">配置モード開始</button>
+    <button onclick="endDeployMode()">配置モード終了</button>
+
+    <h3>爆撃モード</h3>
+    <button onclick="startBombardMode()">爆撃モード開始</button>
+    <button onclick="endBombardMode()">爆撃モード終了</button>
+    <p>爆撃したい領土を地図でクリックしてください</p>
+    <h3>ミサイルモード</h3>
+    <button onclick="startMissileMode()">ミサイルモード開始</button>
+    <button onclick="endMissileMode()">ミサイルモード終了</button>
+    <p>ミサイルを発射したい敵領土を地図でクリックしてください</p>
+    <h3>攻撃実行</h3>
+    攻撃歩兵数:
+    <input type="number" id="attackInfantry" value="10" max="200" min="20" />
+    攻撃戦車数:
+    <input type="number" id="attackTank" value="5" max="70" min="0" />
+    攻撃機械化歩兵数:
+    <input type="number" id="attackMechInf" value="5" max="130" min="0" />
+    <button onclick="startAttackMode()">攻撃モード開始</button>
+    <h2>🌐 全体チャット</h2>
+    <div
+      id="chatLog"
+      style="
+        height: 200px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      "
+    ></div>
+    <div>
+      <input
+        type="text"
+        id="chatInput"
+        placeholder="メッセージを入力..."
+        style="width: calc(100% - 90px)"
+        onkeydown="if(event.key === 'Enter') sendChatMessage();"
+      />
+      <button onclick="sendChatMessage()" style="width: 80px">送信</button>
+    </div>
+    <div id="onlineUsers">
+      <h3>🚀 オンライン中のプレイヤー</h3>
+      <p style="font-size: 12px; color: #666">
+        ※30秒以内に活動があったプレイヤーが表示されます。
+      </p>
+      <ul id="onlineUsersList">
+        <li>読み込み中...</li>
+      </ul>
+    </div>
+    <img
+      src="https://www.cloudsemi.com/test/so/douga/so1png/sc1ja_001-09.png"
+      height="400"
+      alt="資源分布"
+    />
+    <p>相手領土を地図でクリックして攻撃開始</p>
+    <h2>📢 最新ニュース</h2>
+    <ul id="newsList"></ul>
+
+    <div
+      id="modeStatus"
+      style="
+        padding: 5px;
+        font-weight: bold;
+        color: white;
+        background-color: darkred;
+        display: none;
+      "
+    >
+      モード実行中！対象の領土をクリックしてください。
+    </div>
+
+    <div id="map"></div>
+
+    <!-- NEW: National Focus Section -->
+    <h2>🎯 国家方針</h2>
+    <div id="currentFocusStatus" class="no-focus">
+      <p><strong>現在の国家方針:</strong> <span id="focusName">なし</span></p>
+      <p>
+        <span id="focusDescription"
+          >国家方針を選択して、国を強化しましょう。</span
+        >
+      </p>
+      <p id="focusProgress" style="display: none">
+        残りターン: <span id="focusTurnsRemaining"></span>
+      </p>
+      <button id="resetFocusBtn" onclick="resetFocus()" style="display: none">
+        国家方針をリセット (テスト用)
+      </button>
+    </div>
+
+    <h3>利用可能な国家方針</h3>
+    <ul id="availableFocuses" class="focus-list">
+      <li>国家方針を読み込み中...</li>
+    </ul>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/script.js"></script>
+  </body>
+</html>
