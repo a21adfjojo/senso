@@ -28,6 +28,11 @@ app.get("/api/nations", (req, res) => {
   res.json({ success: true, nations: gameLogic.getNations() });
 });
 
+app.get("/api/get-my-ip", (req, res) => {
+  const userIp = getClientIp(req);
+  res.json({ success: true, ip: userIp });
+});
+
 app.get("/api/army-deployment", (req, res) => {
   res.json({ success: true, armyDeployment: gameLogic.getArmyDeployment() });
 });

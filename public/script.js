@@ -550,9 +550,8 @@ function loadGeoJSON() {
               // IPアドレスで現在のユーザーの国を特定するロジックが必要
               const myNation = nations.find((n) => n.owner === nation.owner); // サーバーから取得したIPアドレスが自分のIPアドレスと一致するかどうかは、このクライアント側では直接判断できない。
               // したがって、ここではクリックされた国のownerが誰かを示すだけにする。
-              const isOwner = myNation && myNation.owner === nation.owner; // 厳密には、これはクリックされた国の所有者が誰であるかを示すだけで、それが「自分」であるかを保証しない。
-              // サーバー側でIPアドレスを比較する必要がある。
-              // クライアント側で「自分の国」を正確に識別するには、サーバーから自分のIPアドレスを取得するAPIが必要になる。
+              const isOwner = nation && nation.owner === myIpAddress;
+
               const deployment = armyDeployment.find(
                 (a) =>
                   a.countryCode === clickedCountryName &&
@@ -565,7 +564,7 @@ function loadGeoJSON() {
                 : 0;
 
               let info =
-                `<b>${nation.name}</b><br>所持者IP: ${nation.owner}<br>人口: ${nation.population}<br>` + // 所持者をIPアドレスと表示
+                `<b>${nation.name}</b><br>人口: ${nation.population}<br>` + // 所持者をIPアドレスと表示
                 `石油: ${nation.oil}<br>` +
                 `鉄: ${nation.iron}<br>`;
 
@@ -1011,12 +1010,23 @@ async function resetFocus() {
     }
   }
 }
+let myIpAddress = null;
+
+async function fetchMyIp() {
+  const result = await fetchData("/api/get-my-ip");
+  if (result.success) {
+    myIpAddress = result.myIp;
+    console.log("自分のIPアドレス:", myIpAddress);
+  } else {
+    console.warn("自分のIPアドレスを取得できませんでした。");
+  }
+}
 
 // Initial loads and periodic updates
-window.onload = () => {
+window.onload = async () => {
   // IPアドレスを使用するため、setCurrentUserEmail関数は不要になります。
   // setCurrentUserEmail();
-
+  await fetchMyIp();
   loadNations();
   loadChatMessages();
   loadAlliances();
