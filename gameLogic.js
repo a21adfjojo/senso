@@ -64,10 +64,10 @@ function removeNationsWithoutTerritories() {
     data.setAllNations(updatedNations);
     // Also clean up army deployments for removed nations
     let armyDeployment = data.getAllArmyDeployment();
-    const activeNationIps = new Set(updatedNations.map((n) => n.owner)); // Changed from email to IP
+    const activeNationIps = new Set(updatedNations.map((n) => n.owner));
     let updatedArmyDeployment = armyDeployment.filter((ad) =>
       activeNationIps.has(ad.owner)
-    ); // Changed from email to IP
+    );
     data.setAllArmyDeployment(updatedArmyDeployment);
   }
 }
@@ -100,14 +100,12 @@ function getLatestNews() {
 }
 
 function registerNation(userIp, nationName, countryName) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   if (nations.some((n) => n.owner === userIp)) {
-    // Changed from email to IP
     return {
       success: false,
       message: "あなたはすでに国を持っているため登録できません。",
@@ -135,7 +133,7 @@ function registerNation(userIp, nationName, countryName) {
     money: 10000,
     population: 10000,
     territories: [countryName],
-    owner: userIp, // Changed to IP
+    owner: userIp,
     missile: 0,
     oil: 0,
     iron: 0,
@@ -151,13 +149,12 @@ function registerNation(userIp, nationName, countryName) {
 }
 
 function buyTerritory(userIp, countryName) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let userNation = nations.find((n) => n.owner === userIp);
   if (!userNation)
     return { success: false, message: "あなたはまだ国を持っていません。" };
 
@@ -181,18 +178,17 @@ function buyTerritory(userIp, countryName) {
 }
 
 function reinforceArmy(userIp, type, amount) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   amount = parseInt(amount, 10);
   if (isNaN(amount) || amount <= 0) {
     return { success: false, message: "正しい数量を入力してください。" };
   }
 
-  let userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let userNation = nations.find((n) => n.owner === userIp);
   if (!userNation) {
     return { success: false, message: "あなたの国が見つかりません。" };
   }
@@ -290,12 +286,11 @@ function reinforceArmy(userIp, type, amount) {
 }
 
 function deployArmy(userIp, countryName, infantry, tank, mechanizedInfantry) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   let armyDeployment = data.getAllArmyDeployment();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   infantry = parseInt(infantry, 10);
   tank = parseInt(tank, 10);
@@ -311,7 +306,7 @@ function deployArmy(userIp, countryName, infantry, tank, mechanizedInfantry) {
     return { success: false, message: "正しい数値を入力してください。" };
   }
 
-  let userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let userNation = nations.find((n) => n.owner === userIp);
   if (!userNation)
     return { success: false, message: "あなたの国が見つかりません。" };
 
@@ -321,7 +316,6 @@ function deployArmy(userIp, countryName, infantry, tank, mechanizedInfantry) {
     usedMechInf = 0;
   armyDeployment.forEach((ad) => {
     if (ad.owner === userIp && ad.countryCode !== countryName) {
-      // Changed from email to IP
       usedInfantry += ad.infantry;
       usedTank += ad.tank;
       usedMechInf += ad.mechanizedInfantry;
@@ -338,7 +332,7 @@ function deployArmy(userIp, countryName, infantry, tank, mechanizedInfantry) {
 
   let targetDeployment = armyDeployment.find(
     (ad) => ad.owner === userIp && ad.countryCode === countryName
-  ); // Changed from email to IP
+  );
 
   if (targetDeployment) {
     targetDeployment.infantry = infantry;
@@ -347,7 +341,7 @@ function deployArmy(userIp, countryName, infantry, tank, mechanizedInfantry) {
   } else {
     armyDeployment.push({
       countryCode: countryName,
-      owner: userIp, // Changed to IP
+      owner: userIp,
       infantry: infantry,
       tank: tank,
       mechanizedInfantry: mechanizedInfantry,
@@ -362,14 +356,13 @@ function deployArmy(userIp, countryName, infantry, tank, mechanizedInfantry) {
 }
 
 function autoDeployArmy(userIp) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   let armyDeployment = data.getAllArmyDeployment();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let myNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let myNation = nations.find((n) => n.owner === userIp);
   if (!myNation) return { success: false, message: "自国が見つかりません。" };
   if (myNation.territories.length === 0)
     return { success: false, message: "領土がありません。" };
@@ -386,7 +379,7 @@ function autoDeployArmy(userIp) {
   let mechInfLeft = myNation.mechanizedInfantry % numTerritories;
 
   // Remove existing deployments for this user
-  armyDeployment = armyDeployment.filter((ad) => ad.owner !== userIp); // Changed from email to IP
+  armyDeployment = armyDeployment.filter((ad) => ad.owner !== userIp);
 
   territories.forEach((countryName) => {
     let inf = infantryPer + (infantryLeft-- > 0 ? 1 : 0);
@@ -395,7 +388,7 @@ function autoDeployArmy(userIp) {
 
     armyDeployment.push({
       countryCode: countryName,
-      owner: userIp, // Changed to IP
+      owner: userIp,
       infantry: inf,
       tank: tank,
       mechanizedInfantry: mechInf,
@@ -407,14 +400,13 @@ function autoDeployArmy(userIp) {
 }
 
 function requestAlliance(userIp, targetNationName) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   let alliances = data.getAllAlliances();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let requesterNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let requesterNation = nations.find((n) => n.owner === userIp);
   let approverNation = nations.find((n) => n.name === targetNationName);
 
   if (!requesterNation)
@@ -427,24 +419,57 @@ function requestAlliance(userIp, targetNationName) {
       message: "自分自身と同盟を組むことはできません。",
     };
 
-  // Check for existing or pending alliances
+  // Check for existing or pending alliances for both nations
+  const hasExistingAlliance = alliances.some(
+    (alliance) =>
+      alliance.status === "Approved" &&
+      ((alliance.requesterIp === requesterNation.owner &&
+        alliance.approverIp === approverNation.owner) ||
+        (alliance.requesterIp === approverNation.owner &&
+          alliance.approverIp === requesterNation.owner))
+  );
+
+  if (hasExistingAlliance) {
+    return {
+      success: false,
+      message: `${requesterNation.name}または${approverNation.name}はすでに他の国と同盟を結んでいます。`,
+    };
+  }
+
+  // Check if requester already has an approved alliance
+  const requesterHasApprovedAlliance = alliances.some(
+    (alliance) =>
+      alliance.status === "Approved" &&
+      (alliance.requesterIp === requesterNation.owner ||
+        alliance.approverIp === requesterNation.owner)
+  );
+  if (requesterHasApprovedAlliance) {
+    return {
+      success: false,
+      message: `${requesterNation.name}はすでに他の国と同盟を結んでいます。`,
+    };
+  }
+
+  // Check if approver already has an approved alliance
+  const approverHasApprovedAlliance = alliances.some(
+    (alliance) =>
+      alliance.status === "Approved" &&
+      (alliance.requesterIp === approverNation.owner ||
+        alliance.approverIp === approverNation.owner)
+  );
+  if (approverHasApprovedAlliance) {
+    return {
+      success: false,
+      message: `${approverNation.name}はすでに他の国と同盟を結んでいます。`,
+    };
+  }
+
+  // Check for existing pending requests
   for (const alliance of alliances) {
-    const existingRequesterIp = alliance.requesterIp; // Changed from Email to Ip
-    const existingApproverIp = alliance.approverIp; // Changed from Email to Ip
+    const existingRequesterIp = alliance.requesterIp;
+    const existingApproverIp = alliance.approverIp;
     const status = alliance.status;
 
-    if (
-      status === "Approved" &&
-      ((existingRequesterIp === requesterNation.owner &&
-        existingApproverIp === approverNation.owner) ||
-        (existingRequesterIp === approverNation.owner &&
-          existingApproverIp === requesterNation.owner))
-    ) {
-      return {
-        success: false,
-        message: `${targetNationName}とはすでに同盟関係にあります。`,
-      };
-    }
     if (
       status === "Pending" &&
       existingRequesterIp === requesterNation.owner &&
@@ -468,9 +493,9 @@ function requestAlliance(userIp, targetNationName) {
   }
 
   alliances.push({
-    requesterIp: requesterNation.owner, // Changed to Ip
+    requesterIp: requesterNation.owner,
     requesterNationName: requesterNation.name,
-    approverIp: approverNation.owner, // Changed to Ip
+    approverIp: approverNation.owner,
     approverNationName: approverNation.name,
     status: "Pending",
     timestamp: new Date().toISOString(),
@@ -486,11 +511,10 @@ function requestAlliance(userIp, targetNationName) {
 }
 
 function respondToAllianceRequest(userIp, requesterIp, response) {
-  // Changed userEmail/requesterEmail to userIp/requesterIp
   let alliances = data.getAllAlliances();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   let requestFound = false;
   for (let i = 0; i < alliances.length; i++) {
@@ -500,9 +524,30 @@ function respondToAllianceRequest(userIp, requesterIp, response) {
       alliance.approverIp === userIp &&
       alliance.status === "Pending"
     ) {
-      // Changed to Ip
       requestFound = true;
       if (response === "approve") {
+        // Check if either nation already has an approved alliance (should be caught by requestAlliance, but double check)
+        const approverHasApprovedAlliance = alliances.some(
+          (a) =>
+            a.status === "Approved" &&
+            (a.requesterIp === userIp || a.approverIp === userIp)
+        );
+        const requesterHasApprovedAlliance = alliances.some(
+          (a) =>
+            a.status === "Approved" &&
+            (a.requesterIp === requesterIp || a.approverIp === requesterIp)
+        );
+
+        if (approverHasApprovedAlliance || requesterHasApprovedAlliance) {
+          // If already allied, reject this pending request and inform
+          alliances.splice(i, 1); // Remove the request
+          data.setAllAlliances(alliances);
+          return {
+            success: false,
+            message: `承認できません。あなたまたは相手の国はすでに他の同盟を結んでいます。`,
+          };
+        }
+
         alliance.status = "Approved";
         data.setAllAlliances(alliances);
         addNews(
@@ -532,11 +577,10 @@ function respondToAllianceRequest(userIp, requesterIp, response) {
 }
 
 function dissolveAlliance(userIp, alliedNationIp) {
-  // Changed userEmail/alliedNationEmail to userIp/alliedNationIp
   let alliances = data.getAllAlliances();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   let allianceFoundAndDissolved = false;
   let dissolvedNationName = "";
@@ -547,14 +591,11 @@ function dissolveAlliance(userIp, alliedNationIp) {
     if (
       alliance.status === "Approved" &&
       ((alliance.requesterIp === userIp &&
-        alliance.approverIp === alliedNationIp) || // Changed to Ip
+        alliance.approverIp === alliedNationIp) ||
         (alliance.approverIp === userIp &&
           alliance.requesterIp === alliedNationIp))
     ) {
-      // Changed to Ip
-
       if (alliance.requesterIp === userIp) {
-        // Changed to Ip
         dissolvedNationName = alliance.requesterNationName;
         dissolvedPartnerName = alliance.approverNationName;
       } else {
@@ -583,7 +624,6 @@ function dissolveAlliance(userIp, alliedNationIp) {
 }
 
 function getAlliances(userIp) {
-  // Changed userEmail to userIp
   const alliances = data.getAllAlliances();
   if (!userIp) return { pendingRequests: [], approvedAlliances: [] };
 
@@ -591,28 +631,26 @@ function getAlliances(userIp) {
   const approvedAlliances = [];
 
   for (const alliance of alliances) {
-    const requesterIp = alliance.requesterIp; // Changed to Ip
+    const requesterIp = alliance.requesterIp;
     const requesterNationName = alliance.requesterNationName;
-    const approverIp = alliance.approverIp; // Changed to Ip
+    const approverIp = alliance.approverIp;
     const approverNationName = alliance.approverNationName;
     const status = alliance.status;
 
     if (status === "Pending" && approverIp === userIp) {
-      // Changed to Ip
       pendingRequests.push({
-        requesterIp: requesterIp, // Changed to Ip
+        requesterIp: requesterIp,
         requesterNationName: requesterNationName,
       });
     } else if (
       status === "Approved" &&
       (requesterIp === userIp || approverIp === userIp)
     ) {
-      // Changed to Ip
       const alliedNationName =
-        requesterIp === userIp ? approverNationName : requesterNationName; // Changed to Ip
+        requesterIp === userIp ? approverNationName : requesterNationName;
       approvedAlliances.push({
         nationName: alliedNationName,
-        ip: requesterIp === userIp ? approverIp : requesterIp, // Changed email to ip
+        ip: requesterIp === userIp ? approverIp : requesterIp,
       });
     }
   }
@@ -629,18 +667,17 @@ function attackTerritory(
   attackTank,
   attackMechanizedInfantry
 ) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   let armyDeployment = data.getAllArmyDeployment();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   attackInfantry = parseInt(attackInfantry, 10);
   attackTank = parseInt(attackTank, 10);
   attackMechanizedInfantry = parseInt(attackMechanizedInfantry, 10);
 
-  let attackerNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let attackerNation = nations.find((n) => n.owner === userIp);
   let defenderNation = nations.find((n) =>
     n.territories.includes(targetCountryName)
   );
@@ -656,11 +693,10 @@ function attackTerritory(
     if (
       alliance.status === "Approved" &&
       ((alliance.requesterIp === attackerNation.owner &&
-        alliance.approverIp === defenderNation.owner) || // Changed to Ip
+        alliance.approverIp === defenderNation.owner) ||
         (alliance.requesterIp === defenderNation.owner &&
           alliance.approverIp === attackerNation.owner))
     ) {
-      // Changed to Ip
       return { success: false, message: "同盟国を攻撃することはできません。" };
     }
   }
@@ -840,14 +876,13 @@ function attackTerritory(
 }
 
 function bombardTerritory(userIp, targetCountryName) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   let armyDeployment = data.getAllArmyDeployment();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let attackerNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let attackerNation = nations.find((n) => n.owner === userIp);
   let defenderNation = nations.find((n) =>
     n.territories.includes(targetCountryName)
   );
@@ -918,17 +953,16 @@ function bombardTerritory(userIp, targetCountryName) {
 }
 
 function transferResourcesByName(userIp, toNationName, type, amount) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   amount = parseInt(amount, 10);
   if (isNaN(amount) || amount <= 0)
     return { success: false, message: "正しい数値を入力してください。" };
 
-  let senderNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let senderNation = nations.find((n) => n.owner === userIp);
   let receiverNation = nations.find((n) => n.name === toNationName);
 
   if (!senderNation)
@@ -1021,13 +1055,12 @@ function transferResourcesByName(userIp, toNationName, type, amount) {
 }
 
 function spyNation(userIp, targetNationName) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let senderNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let senderNation = nations.find((n) => n.owner === userIp);
   let targetNation = nations.find((n) => n.name === targetNationName);
 
   if (!senderNation)
@@ -1078,13 +1111,12 @@ function spyNation(userIp, targetNationName) {
 }
 
 function transferTerritory(userIp, targetNationName, territoryName) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let senderNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let senderNation = nations.find((n) => n.owner === userIp);
   let receiverNation = nations.find((n) => n.name === targetNationName);
 
   if (!senderNation)
@@ -1119,15 +1151,23 @@ function transferTerritory(userIp, targetNationName, territoryName) {
   };
 }
 
-function launchMissile(userIp, targetCountryName) {
-  // Changed userEmail to userIp
+function launchMissile(userIp, targetCountryName, missileCount) {
+  // missileCountを追加
   let nations = data.getAllNations();
   let armyDeployment = data.getAllArmyDeployment();
 
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let attackerNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  missileCount = parseInt(missileCount, 10);
+  if (isNaN(missileCount) || missileCount < 1 || missileCount > 100) {
+    return {
+      success: false,
+      message: "発射するミサイルの数は1から100の間で指定してください。",
+    };
+  }
+
+  let attackerNation = nations.find((n) => n.owner === userIp);
   let defenderNation = nations.find((n) =>
     n.territories.includes(targetCountryName)
   );
@@ -1142,20 +1182,24 @@ function launchMissile(userIp, targetCountryName) {
       message: "自国領土にミサイルを発射することはできません。",
     };
 
-  if (attackerNation.missile < 1)
-    return { success: false, message: "ミサイルを所有していません。" };
+  if (attackerNation.missile < missileCount)
+    return {
+      success: false,
+      message: `ミサイルが足りません。${missileCount}発必要です。`,
+    };
 
-  // Consume one missile
-  attackerNation.missile--;
+  // Consume missiles
+  attackerNation.missile -= missileCount;
 
-  // Population decrease
-  const populationLoss = 3000;
+  // Population decrease (scaled by missileCount)
+  const basePopulationLossPerMissile = 3000; // 1発あたりの基本人口減少
+  const totalPopulationLoss = basePopulationLossPerMissile * missileCount; // ミサイル数に比例して人口減少
   defenderNation.population = Math.max(
     0,
-    defenderNation.population - populationLoss
+    defenderNation.population - totalPopulationLoss
   );
 
-  // Half defense army
+  // Army destruction (scaled by missileCount with diminishing returns)
   let defenderDeployment = armyDeployment.find(
     (ad) =>
       ad.countryCode === targetCountryName && ad.owner === defenderNation.owner
@@ -1165,9 +1209,17 @@ function launchMissile(userIp, targetCountryName) {
     mechInfLoss = 0;
 
   if (defenderDeployment) {
-    infLoss = Math.floor(defenderDeployment.infantry / 2);
-    tankLoss = Math.floor(defenderDeployment.tank / 2);
-    mechInfLoss = Math.floor(defenderDeployment.mechanizedInfantry / 2);
+    // 破壊率をミサイル数に応じて計算 (1発で50%破壊、ミサイル数が増えるほど効果は逓減)
+    // 例えば、N発のミサイルで 1 - (0.5 ^ N) の破壊率
+    const effectiveDestructionRate = 1 - Math.pow(0.5, missileCount);
+
+    infLoss = Math.floor(
+      defenderDeployment.infantry * effectiveDestructionRate
+    );
+    tankLoss = Math.floor(defenderDeployment.tank * effectiveDestructionRate);
+    mechInfLoss = Math.floor(
+      defenderDeployment.mechanizedInfantry * effectiveDestructionRate
+    );
 
     defenderDeployment.infantry = Math.max(
       0,
@@ -1192,15 +1244,15 @@ function launchMissile(userIp, targetCountryName) {
   data.setAllArmyDeployment(armyDeployment);
 
   addNews(
-    `${attackerNation.name}が${defenderNation.name}の${targetCountryName}にミサイルを発射！`
+    `${attackerNation.name}が${defenderNation.name}の${targetCountryName}にミサイルを${missileCount}発発射！`
   );
   addNews(
-    `${defenderNation.name}の${targetCountryName}にミサイルが着弾！ 人口${populationLoss}減少し、防衛軍が半壊した。(損害: 歩兵${infLoss}, 戦車${tankLoss}, 機械化歩兵${mechInfLoss})`
+    `${defenderNation.name}の${targetCountryName}にミサイルが着弾！ 人口${totalPopulationLoss}減少し、防衛軍に損害を与えた。(損害: 歩兵${infLoss}, 戦車${tankLoss}, 機械化歩兵${mechInfLoss})`
   );
 
   return {
     success: true,
-    message: `ミサイルが${targetCountryName}に発射されました。着弾します。`,
+    message: `ミサイルが${targetCountryName}に${missileCount}発発射されました。着弾します。`,
   };
 }
 
@@ -1217,7 +1269,6 @@ function getChatMessages() {
 }
 
 function postChatMessage(userIp, message) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   let chatLog = data.getAllChatLog();
 
@@ -1226,7 +1277,7 @@ function postChatMessage(userIp, message) {
   }
 
   let nationName = "不明な国";
-  const userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  const userNation = nations.find((n) => n.owner === userIp);
   if (userNation) {
     nationName = userNation.name;
   }
@@ -1236,7 +1287,7 @@ function postChatMessage(userIp, message) {
     userIp: userIp,
     nationName: nationName,
     message: message.trim(),
-  }); // Changed userEmail to userIp
+  });
   // Keep only the last 100 messages
   if (chatLog.length > 100) {
     chatLog.splice(0, chatLog.length - 100);
@@ -1334,19 +1385,18 @@ function addResourcesPerMinute() {
 }
 
 function updateUserActivity(userIp) {
-  // Changed userEmail to userIp
   let userActivity = data.getAllUserActivity();
   let nations = data.getAllNations();
 
   if (!userIp) return;
 
   let nationName = "未登録の国";
-  const userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  const userNation = nations.find((n) => n.owner === userIp);
   if (userNation) {
     nationName = userNation.name;
   }
 
-  let userEntry = userActivity.find((entry) => entry.userIp === userIp); // Changed from userEmail to userIp
+  let userEntry = userActivity.find((entry) => entry.userIp === userIp);
   const currentTime = new Date().toISOString();
 
   if (userEntry) {
@@ -1357,7 +1407,7 @@ function updateUserActivity(userIp) {
       userIp: userIp,
       nationName: nationName,
       lastSeen: currentTime,
-    }); // Changed userEmail to userIp
+    });
   }
   data.setAllUserActivity(userActivity);
 }
@@ -1376,16 +1426,15 @@ function getOnlineUserNames() {
 }
 
 function getAvailableNationalFocuses(userIp) {
-  // Changed userEmail to userIp
   const nations = data.getAllNations();
   if (!userIp)
     return {
       success: false,
       message: "IPアドレスが取得できませんでした。",
       focuses: [],
-    }; // Changed message
+    };
 
-  let userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let userNation = nations.find((n) => n.owner === userIp);
   if (!userNation)
     return {
       success: false,
@@ -1428,15 +1477,14 @@ function getAvailableNationalFocuses(userIp) {
 }
 
 function startNationalFocus(userIp, focusId) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
   const focus = NATIONAL_FOCUSES[focusId];
   if (!focus) return { success: false, message: "無効な国家方針です。" };
 
-  let userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let userNation = nations.find((n) => n.owner === userIp);
   if (!userNation)
     return { success: false, message: "あなたの国が見つかりません。" };
   if (userNation.activeFocusId)
@@ -1499,12 +1547,11 @@ function processNationalFocusProgress() {
 }
 
 function resetNationalFocus(userIp) {
-  // Changed userEmail to userIp
   let nations = data.getAllNations();
   if (!userIp)
-    return { success: false, message: "IPアドレスが取得できませんでした。" }; // Changed message
+    return { success: false, message: "IPアドレスが取得できませんでした。" };
 
-  let userNation = nations.find((n) => n.owner === userIp); // Changed from email to IP
+  let userNation = nations.find((n) => n.owner === userIp);
   if (!userNation)
     return { success: false, message: "あなたの国が見つかりません。" };
 
@@ -1546,6 +1593,6 @@ module.exports = {
   startNationalFocus,
   processNationalFocusProgress,
   resetNationalFocus,
-  removeNationsWithoutTerritories, // Exported for scheduler
-  addNews, // Exported for scheduler if needed
+  removeNationsWithoutTerritories,
+  addNews,
 };
