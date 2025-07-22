@@ -2,10 +2,11 @@
 const gameLogic = require("./gameLogic");
 
 // Interval times in milliseconds
-const INCOME_INTERVAL = 60 * 1000; // 1 minute
-const RESOURCE_INTERVAL = 60 * 1000; // 1 minute
-const FOCUS_PROGRESS_INTERVAL = 60 * 1000; // 1 minute
-const NATION_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+// 1ターンを5分 (5 * 60 * 1000 ミリ秒) に変更
+const INCOME_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const RESOURCE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const FOCUS_PROGRESS_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const NATION_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes (これは以前から5分なので変更なし)
 
 function startSchedulers() {
   console.log("Starting game schedulers...");
