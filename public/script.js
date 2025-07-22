@@ -6,7 +6,8 @@ let attackMode = false;
 let deployMode = false;
 let bombardMode = false;
 let transferMode = false;
-const PURCHASE_PRICE = 1500;
+// currentUserEmail は削除され、サーバー側でIPアドレスが自動的に取得されます。
+const PURCHASE_PRICE = 1500; // From constants.js, consistent with backend
 
 const map = L.map("map").setView([20, 0], 2);
 
@@ -22,6 +23,18 @@ let nations = [];
 let geojsonLayer;
 let armyDeployment = [];
 
+// IPアドレスを使用するため、setCurrentUserEmail関数は不要になります。
+// function setCurrentUserEmail() {
+//   const emailInput = document.getElementById('userEmailInput');
+//   currentUserEmail = emailInput.value.trim();
+//   alert(`ユーザーメールアドレスを ${currentUserEmail} に設定しました。`);
+//   updateUserActivity();
+//   loadNations();
+//   loadAlliances();
+//   loadNationalFocusStatus();
+// }
+
+// Generic fetch wrapper
 async function fetchData(url, method = "GET", body = null) {
   const options = {
     method: method,
@@ -53,7 +66,7 @@ function loadNations() {
           armyDeployment = armyResult.armyDeployment;
           loadGeoJSON();
           loadAlliances();
-          updateUserActivity();
+          updateUserActivity(); // IPアドレスはサーバー側で取得されるため、引数は不要
           loadNationalFocusStatus();
         } else {
           alert(armyResult.message);
@@ -133,14 +146,6 @@ function hideTutorialBox() {
 }
 
 function startMissileMode() {
-  const missileCount = parseInt(
-    document.getElementById("missileCountInput").value,
-    10
-  );
-  if (isNaN(missileCount) || missileCount < 1 || missileCount > 100) {
-    alert("発射するミサイルの数は1から100の間で指定してください。");
-    return;
-  }
   missileMode = true;
   attackMode = false;
   deployMode = false;
@@ -218,7 +223,7 @@ function endBombardMode() {
 }
 
 async function autoDeploy() {
-  const result = await fetchData("/api/auto-deploy-army", "POST", {});
+  const result = await fetchData("/api/auto-deploy-army", "POST", {}); // userEmail引数を削除
   alert(result.message);
   if (result.success) {
     loadNations();
@@ -284,6 +289,12 @@ function loadGeoJSON() {
               n.territories.includes(clickedCountryName)
             );
 
+            // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+            // if (!currentUserEmail) {
+            //   alert("まずあなたのメールアドレスを設定してください。");
+            //   return;
+            // }
+
             // 1. 国登録モードの場合
             if (isRegisteringNation) {
               const nationName = document
@@ -296,7 +307,7 @@ function loadGeoJSON() {
               const result = await fetchData("/api/register-nation", "POST", {
                 nationName,
                 countryName: clickedCountryName,
-              });
+              }); // userEmail引数を削除
               if (result.success) {
                 alert("国を登録しました！");
                 isRegisteringNation = false;
@@ -308,6 +319,7 @@ function loadGeoJSON() {
             }
 
             // 2. 軍配置モードの場合 (自分の領土のみ)
+            // nation.owner はIPアドレスになる
             if (
               deployMode &&
               nation &&
@@ -317,6 +329,7 @@ function loadGeoJSON() {
                   n.territories.includes(clickedCountryName)
               )
             ) {
+              // 自分の国かどうかをIPアドレスで確認
               const inf = parseInt(
                 document.getElementById("deployInfantry").value,
                 10
@@ -345,13 +358,14 @@ function loadGeoJSON() {
                 infantry: inf,
                 tank: tank,
                 mechanizedInfantry: mechInf,
-              });
+              }); // userEmail引数を削除
               alert(result.message);
               loadNations();
               return;
             }
 
             // 3. 攻撃モードの場合 (他国の領土のみ)
+            // nation.owner はIPアドレスになる
             if (
               attackMode &&
               nation &&
@@ -361,6 +375,7 @@ function loadGeoJSON() {
                   !n.territories.includes(clickedCountryName)
               )
             ) {
+              // 自分の国ではないことをIPアドレスで確認
               const infantry = parseInt(
                 document.getElementById("attackInfantry").value,
                 10
@@ -389,7 +404,7 @@ function loadGeoJSON() {
                 attackInfantry: infantry,
                 attackTank: tank,
                 attackMechanizedInfantry: mechInf,
-              });
+              }); // userEmail引数を削除
               alert(result.message);
               attackMode = false;
               updateModeStatus();
@@ -409,6 +424,7 @@ function loadGeoJSON() {
             }
 
             // 4. 爆撃モードの場合 (他国の領土のみ)
+            // nation.owner はIPアドレスになる
             if (
               bombardMode &&
               nation &&
@@ -425,7 +441,7 @@ function loadGeoJSON() {
               }
               const result = await fetchData("/api/bombard-territory", "POST", {
                 targetCountryName: clickedCountryName,
-              });
+              }); // userEmail引数を削除
               alert(result.message);
               bombardMode = false;
               updateModeStatus();
@@ -445,6 +461,7 @@ function loadGeoJSON() {
             }
 
             // 5. ミサイルモードの場合 (他国の領土のみ)
+            // nation.owner はIPアドレスになる
             if (
               missileMode &&
               nation &&
@@ -454,33 +471,20 @@ function loadGeoJSON() {
                   !n.territories.includes(clickedCountryName)
               )
             ) {
-              const missileCount = parseInt(
-                document.getElementById("missileCountInput").value,
-                10
-              );
-              if (
-                isNaN(missileCount) ||
-                missileCount < 1 ||
-                missileCount > 100
-              ) {
-                alert("発射するミサイルの数は1から100の間で指定してください。");
-                return;
-              }
               if (
                 !confirm(
-                  `${props.name}にミサイルを${missileCount}発発射しますか？（10秒後に着弾）`
+                  `${props.name}にミサイルを発射しますか？（10秒後に着弾）`
                 )
               ) {
                 return;
               }
               alert(
-                `ミサイルが${props.name}に向けて${missileCount}発発射されました！10秒後に着弾します。`
+                `ミサイルが${props.name}に向けて発射されました！10秒後に着弾します。`
               );
               setTimeout(async () => {
                 const result = await fetchData("/api/launch-missile", "POST", {
                   targetCountryName: clickedCountryName,
-                  missileCount: missileCount,
-                }); // missileCountを送信
+                }); // userEmail引数を削除
                 alert(result.message);
                 loadNations();
               }, 10000);
@@ -501,6 +505,7 @@ function loadGeoJSON() {
             }
 
             // 6. 領土譲渡モード (自分の領土のみ)
+            // nation.owner はIPアドレスになる
             if (
               transferMode &&
               nation &&
@@ -521,7 +526,7 @@ function loadGeoJSON() {
                 "/api/transfer-territory",
                 "POST",
                 { targetNationName, territoryName: clickedCountryName }
-              );
+              ); // userEmail引数を削除
               alert(result.message);
               transferMode = false;
               updateModeStatus();
@@ -542,8 +547,11 @@ function loadGeoJSON() {
 
             // 7. 通常クリック時の情報表示または領土購入
             if (nation) {
-              const myNation = nations.find((n) => n.owner === nation.owner);
-              const isOwner = myNation && myNation.owner === nation.owner;
+              // IPアドレスで現在のユーザーの国を特定するロジックが必要
+              const myNation = nations.find((n) => n.owner === nation.owner); // サーバーから取得したIPアドレスが自分のIPアドレスと一致するかどうかは、このクライアント側では直接判断できない。
+              // したがって、ここではクリックされた国のownerが誰かを示すだけにする。
+              const isOwner = nation && nation.owner === myIpAddress;
+
               const deployment = armyDeployment.find(
                 (a) =>
                   a.countryCode === clickedCountryName &&
@@ -556,11 +564,13 @@ function loadGeoJSON() {
                 : 0;
 
               let info =
-                `<b>${nation.name}</b><br>所持者IP: ${nation.owner}<br>人口: ${nation.population}<br>` +
+                `<b>${nation.name}</b><br>人口: ${nation.population}<br>` + // 所持者をIPアドレスと表示
                 `石油: ${nation.oil}<br>` +
                 `鉄: ${nation.iron}<br>`;
 
               if (isOwner) {
+                // このisOwnerは、クリックされた国が誰かの国であるという情報であり、それが自分の国であるかは保証されない。
+                // 自分の国かどうかを正確に知るには、サーバーから自分のIPアドレスを取得して比較する必要がある。
                 info +=
                   `総兵力 - 歩兵: ${nation.infantry}, 戦車: ${nation.tank}, 機械化歩兵: ${nation.mechanizedInfantry}, 爆撃機: ${nation.bomber}, ミサイル: ${nation.missile}<br>` +
                   `配置兵力 - 歩兵: ${deployedInf}, 戦車: ${deployedTank}, 機械化歩兵: ${deployedMechInf}<br>` +
@@ -579,7 +589,7 @@ function loadGeoJSON() {
               }
               const result = await fetchData("/api/buy-territory", "POST", {
                 countryName: clickedCountryName,
-              });
+              }); // userEmail引数を削除
               if (result.success) {
                 alert(`購入成功！残りのお金：${result.newMoney}`);
                 loadNations();
@@ -594,6 +604,11 @@ function loadGeoJSON() {
 }
 
 function startRegisterNation() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const nationName = document.getElementById("nationNameInput").value.trim();
   if (!nationName) {
     alert("国名を入力してください");
@@ -610,6 +625,11 @@ function startRegisterNation() {
 }
 
 async function reinforce() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const type = document.getElementById("unitType").value;
   const amount = parseInt(document.getElementById("unitAmount").value, 10);
 
@@ -621,7 +641,7 @@ async function reinforce() {
   const result = await fetchData("/api/reinforce-army", "POST", {
     type,
     amount,
-  });
+  }); // userEmail引数を削除
   if (result.success) {
     alert(result.message);
     loadNations();
@@ -631,6 +651,11 @@ async function reinforce() {
 }
 
 async function sendResourcesByName() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const name = document.getElementById("targetNationName").value.trim();
   const type = document.getElementById("resourceType").value;
   const amount = document.getElementById("resourceAmount").value;
@@ -644,7 +669,7 @@ async function sendResourcesByName() {
     toNationName: name,
     type,
     amount,
-  });
+  }); // userEmail引数を削除
   alert(result.message);
   if (result.success) {
     loadNations();
@@ -652,6 +677,11 @@ async function sendResourcesByName() {
 }
 
 async function spy() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const target = document.getElementById("spyTargetNation").value.trim();
   if (!target) {
     alert("スパイ対象の国名を入力してください。");
@@ -659,7 +689,7 @@ async function spy() {
   }
   const result = await fetchData("/api/spy-nation", "POST", {
     targetNationName: target,
-  });
+  }); // userEmail引数を削除
   const resultDiv = document.getElementById("spyResult");
   if (result.success) {
     let info = result.info;
@@ -681,6 +711,7 @@ async function spy() {
 }
 
 async function updateUserActivity() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側で引数を渡す必要はありません。
   await fetchData("/api/update-user-activity", "POST", {});
 }
 
@@ -698,12 +729,17 @@ async function loadNews() {
 }
 
 async function sendChatMessage() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const input = document.getElementById("chatInput");
   const message = input.value.trim();
   if (message) {
     const result = await fetchData("/api/post-chat-message", "POST", {
       message,
-    });
+    }); // userEmail引数を削除
     if (result.success) {
       input.value = "";
       loadChatMessages();
@@ -718,7 +754,7 @@ async function loadChatMessages() {
   if (result.success) {
     const chatLog = document.getElementById("chatLog");
     const shouldScroll =
-      chatLog.scrollTop + chatLog.clientHeight >= chatLog.scrollHeight - 5;
+      chatLog.scrollTop + chatLog.clientHeight >= chatLog.scrollHeight - 5; // Allow for slight difference
 
     chatLog.innerHTML = "";
     result.messages.forEach((msg) => {
@@ -751,6 +787,11 @@ setInterval(loadChatMessages, 5000);
 
 // --- Alliance JavaScript Functions ---
 async function requestAlliance() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const targetNationName = document
     .getElementById("allianceTargetNationName")
     .value.trim();
@@ -760,7 +801,7 @@ async function requestAlliance() {
   }
   const result = await fetchData("/api/request-alliance", "POST", {
     targetNationName,
-  });
+  }); // userEmail引数を削除
   alert(result.message);
   if (result.success) {
     loadAlliances();
@@ -768,10 +809,16 @@ async function requestAlliance() {
 }
 
 async function respondToAllianceRequest(requesterIp, response) {
+  // requesterEmailをrequesterIpに変更
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   const result = await fetchData("/api/respond-to-alliance", "POST", {
     requesterIp,
     response,
-  });
+  }); // userEmail引数を削除
   alert(result.message);
   if (result.success) {
     loadAlliances();
@@ -779,7 +826,9 @@ async function respondToAllianceRequest(requesterIp, response) {
 }
 
 async function loadAlliances() {
-  const data = await fetchData("/api/alliances");
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) return;
+  const data = await fetchData("/api/alliances"); // userEmailクエリパラメータを削除
 
   const pendingList = document.getElementById("pendingAllianceRequests");
   pendingList.innerHTML = "";
@@ -788,7 +837,7 @@ async function loadAlliances() {
   } else {
     data.pendingRequests.forEach((req) => {
       const li = document.createElement("li");
-      li.innerHTML = `${req.requesterNationName} からの申請 <button onclick="respondToAllianceRequest('${req.requesterIp}', 'approve')">承認</button> <button onclick="respondToAllianceRequest('${req.requesterIp}', 'reject')">拒否</button>`;
+      li.innerHTML = `${req.requesterNationName} からの申請 <button onclick="respondToAllianceRequest('${req.requesterIp}', 'approve')">承認</button> <button onclick="respondToAllianceRequest('${req.requesterIp}', 'reject')">拒否</button>`; // requesterEmailをrequesterIpに変更
       pendingList.appendChild(li);
     });
   }
@@ -800,17 +849,23 @@ async function loadAlliances() {
   } else {
     data.approvedAlliances.forEach((alliance) => {
       const li = document.createElement("li");
-      li.innerHTML = `${alliance.nationName} <button onclick="dissolveAlliance('${alliance.ip}')">解除</button>`;
+      li.innerHTML = `${alliance.nationName} <button onclick="dissolveAlliance('${alliance.ip}')">解除</button>`; // alliance.emailをalliance.ipに変更
       currentList.appendChild(li);
     });
   }
 }
 
 async function dissolveAlliance(alliedNationIp) {
+  // alliedNationEmailをalliedNationIpに変更
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   if (confirm("本当にこの同盟を解除しますか？")) {
     const result = await fetchData("/api/dissolve-alliance", "POST", {
       alliedNationIp,
-    });
+    }); // userEmail引数を削除
     alert(result.message);
     if (result.success) {
       loadAlliances();
@@ -838,7 +893,9 @@ async function loadOnlineUsers() {
 
 // --- NEW: National Focus JavaScript Functions ---
 async function loadNationalFocusStatus() {
-  const result = await fetchData("/api/available-focuses");
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) return;
+  const result = await fetchData("/api/available-focuses"); // userEmailクエリパラメータを削除
 
   const currentStatusDiv = document.getElementById("currentFocusStatus");
   const focusNameSpan = document.getElementById("focusName");
@@ -865,7 +922,7 @@ async function loadNationalFocusStatus() {
     focusNameSpan.textContent = result.activeFocus.name;
     focusDescriptionSpan.textContent = result.activeFocus.description;
     focusProgressP.style.display = "block";
-    focusTurnsRemainingSpan.textContent = result.focusTurnsRemaining;
+    focusTurnsRemainingSpan.textContent = result.focusTurnsRemaining; // Use value from API
     resetFocusBtn.style.display = "inline-block";
   } else {
     currentStatusDiv.className = "no-focus";
@@ -923,8 +980,13 @@ async function loadNationalFocusStatus() {
 }
 
 async function startFocus(focusId) {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   if (confirm("国家方針「" + focusId + "」を開始しますか？")) {
-    const result = await fetchData("/api/start-focus", "POST", { focusId });
+    const result = await fetchData("/api/start-focus", "POST", { focusId }); // userEmail引数を削除
     alert(result.message);
     if (result.success) {
       loadNationalFocusStatus();
@@ -934,8 +996,13 @@ async function startFocus(focusId) {
 }
 
 async function resetFocus() {
+  // IPアドレスはサーバー側で取得されるため、クライアント側でのチェックは不要
+  // if (!currentUserEmail) {
+  //   alert("まずあなたのメールアドレスを設定してください。");
+  //   return;
+  // }
   if (confirm("国家方針をリセットしますか？ (完了した方針もクリアされます)")) {
-    const result = await fetchData("/api/reset-focus", "POST", {});
+    const result = await fetchData("/api/reset-focus", "POST", {}); // userEmail引数を削除
     alert(result.message);
     if (result.success) {
       loadNationalFocusStatus();
@@ -943,9 +1010,23 @@ async function resetFocus() {
     }
   }
 }
+let myIpAddress = null;
+
+async function fetchMyIp() {
+  const result = await fetchData("/api/get-my-ip");
+  if (result.success) {
+    myIpAddress = result.myIp;
+    console.log("自分のIPアドレス:", myIpAddress);
+  } else {
+    console.warn("自分のIPアドレスを取得できませんでした。");
+  }
+}
 
 // Initial loads and periodic updates
-window.onload = () => {
+window.onload = async () => {
+  // IPアドレスを使用するため、setCurrentUserEmail関数は不要になります。
+  // setCurrentUserEmail();
+  await fetchMyIp();
   loadNations();
   loadChatMessages();
   loadAlliances();
@@ -957,5 +1038,5 @@ window.onload = () => {
   setInterval(loadAlliances, 10000);
   setInterval(loadOnlineUsers, 15000);
   setInterval(loadNationalFocusStatus, 7000);
-  setInterval(updateUserActivity, 20000);
+  setInterval(updateUserActivity, 20000); // IPアドレスはサーバー側で取得されるため、引数は不要
 };
