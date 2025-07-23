@@ -4,7 +4,8 @@
   "description": "A nation management game in Node.js with local file storage.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'No build needed'"
   },
   "keywords": [],
   "author": "",
