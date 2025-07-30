@@ -9,28 +9,17 @@ const data = require("./data");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Renderなどのプロキシ環境でIP取得を正しくする
 app.set("trust proxy", 1);
 
-// IP取得関数
-const getClientIp = (req) => {
-  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.ip;
-};
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // --- API Endpoints ---
 
+// Data retrieval
 app.get("/api/nations", (req, res) => {
   res.json({ success: true, nations: gameLogic.getNations() });
-});
-
-app.get("/api/get-my-ip", (req, res) => {
-  const userIp = getClientIp(req);
-  res.json({ success: true, ip: userIp });
 });
 
 app.get("/api/army-deployment", (req, res) => {
@@ -46,7 +35,7 @@ app.get("/api/chat-messages", (req, res) => {
 });
 
 app.get("/api/alliances", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   res.json(gameLogic.getAlliances(userIp));
 });
 
@@ -55,31 +44,31 @@ app.get("/api/online-users", (req, res) => {
 });
 
 app.get("/api/available-focuses", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   res.json(gameLogic.getAvailableNationalFocuses(userIp));
 });
 
-// Game actions (POST)
+// Game actions (POST requests)
 app.post("/api/register-nation", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { nationName, countryName } = req.body;
   res.json(gameLogic.registerNation(userIp, nationName, countryName));
 });
 
 app.post("/api/buy-territory", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { countryName } = req.body;
   res.json(gameLogic.buyTerritory(userIp, countryName));
 });
 
 app.post("/api/reinforce-army", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { type, amount } = req.body;
   res.json(gameLogic.reinforceArmy(userIp, type, amount));
 });
 
 app.post("/api/deploy-army", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { countryName, infantry, tank, mechanizedInfantry } = req.body;
   res.json(
     gameLogic.deployArmy(
@@ -93,30 +82,30 @@ app.post("/api/deploy-army", (req, res) => {
 });
 
 app.post("/api/auto-deploy-army", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   res.json(gameLogic.autoDeployArmy(userIp));
 });
 
 app.post("/api/request-alliance", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { targetNationName } = req.body;
   res.json(gameLogic.requestAlliance(userIp, targetNationName));
 });
 
 app.post("/api/respond-to-alliance", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { requesterIp, response } = req.body;
   res.json(gameLogic.respondToAllianceRequest(userIp, requesterIp, response));
 });
 
 app.post("/api/dissolve-alliance", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { alliedNationIp } = req.body;
   res.json(gameLogic.dissolveAlliance(userIp, alliedNationIp));
 });
 
 app.post("/api/attack-territory", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const {
     targetCountryName,
     attackInfantry,
@@ -135,13 +124,13 @@ app.post("/api/attack-territory", (req, res) => {
 });
 
 app.post("/api/bombard-territory", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { targetCountryName } = req.body;
   res.json(gameLogic.bombardTerritory(userIp, targetCountryName));
 });
 
 app.post("/api/transfer-resources", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { toNationName, type, amount } = req.body;
   res.json(
     gameLogic.transferResourcesByName(userIp, toNationName, type, amount)
@@ -149,13 +138,13 @@ app.post("/api/transfer-resources", (req, res) => {
 });
 
 app.post("/api/spy-nation", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { targetNationName } = req.body;
   res.json(gameLogic.spyNation(userIp, targetNationName));
 });
 
 app.post("/api/transfer-territory", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { targetNationName, territoryName } = req.body;
   res.json(
     gameLogic.transferTerritory(userIp, targetNationName, territoryName)
@@ -163,31 +152,31 @@ app.post("/api/transfer-territory", (req, res) => {
 });
 
 app.post("/api/launch-missile", (req, res) => {
-  const userIp = getClientIp(req);
-  const { targetCountryName } = req.body;
-  res.json(gameLogic.launchMissile(userIp, targetCountryName));
+  const userIp = req.ip;
+  const { targetCountryName, missileCount } = req.body;
+  res.json(gameLogic.launchMissile(userIp, targetCountryName, missileCount));
 });
 
 app.post("/api/post-chat-message", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { message } = req.body;
   res.json(gameLogic.postChatMessage(userIp, message));
 });
 
 app.post("/api/update-user-activity", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   gameLogic.updateUserActivity(userIp);
   res.json({ success: true });
 });
 
 app.post("/api/start-focus", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   const { focusId } = req.body;
   res.json(gameLogic.startNationalFocus(userIp, focusId));
 });
 
 app.post("/api/reset-focus", (req, res) => {
-  const userIp = getClientIp(req);
+  const userIp = req.ip;
   res.json(gameLogic.resetNationalFocus(userIp));
 });
 

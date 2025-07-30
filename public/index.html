@@ -229,16 +229,12 @@
           各領土は「石油」と「鉄」を生産します。所有する領土から定期的に資源が供給されます。
         </li>
         <li>
-          <strong>領土の購入:</strong>
-          灰色の未所属地域を1つ2000円で購入して、領土を広げましょう。
-        </li>
-        <li>
           <strong>軍隊の増強:</strong>
           お金に加えて、石油と鉄を消費して歩兵、戦車、機械化歩兵を購入し、軍事力を高めましょう。
         </li>
         <li>
           <strong>爆撃機:</strong>
-          爆撃機（120円、石油・鉄消費あり）を購入し、敵領土を爆撃して防衛軍に損害を与えることができます。
+          爆撃機（90円、石油・鉄消費あり）を購入し、敵領土を爆撃して防衛軍に損害を与えることができます。
         </li>
         <li>
           <strong>ミサイル:</strong>
@@ -393,6 +389,8 @@
     <button onclick="endBombardMode()">爆撃モード終了</button>
     <p>爆撃したい領土を地図でクリックしてください</p>
     <h3>ミサイルモード</h3>
+    ミサイル数 (1-100):
+    <input type="number" id="missileCountInput" value="1" min="1" max="100" />
     <button onclick="startMissileMode()">ミサイルモード開始</button>
     <button onclick="endMissileMode()">ミサイルモード終了</button>
     <p>ミサイルを発射したい敵領土を地図でクリックしてください</p>

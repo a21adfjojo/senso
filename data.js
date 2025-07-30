@@ -3,131 +3,103 @@ const fs = require("fs");
 const path = require("path");
 
 const DATA_DIR = path.join(__dirname, "data");
+const NATIONS_FILE = path.join(DATA_DIR, "nations.json");
+const ARMY_DEPLOYMENT_FILE = path.join(DATA_DIR, "armyDeployment.json");
+const NEWS_LOG_FILE = path.join(DATA_DIR, "newsLog.json");
+const ALLIANCES_FILE = path.join(DATA_DIR, "alliances.json");
+const CHAT_LOG_FILE = path.join(DATA_DIR, "chatLog.json");
+const USER_ACTIVITY_FILE = path.join(DATA_DIR, "userActivity.json");
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR);
 }
 
-const dataFiles = {
-  nations: path.join(DATA_DIR, "nations.json"),
-  armyDeployment: path.join(DATA_DIR, "armyDeployment.json"),
-  alliances: path.join(DATA_DIR, "alliances.json"),
-  newsLog: path.join(DATA_DIR, "newsLog.json"),
-  chatLog: path.join(DATA_DIR, "chatLog.json"),
-  userActivity: path.join(DATA_DIR, "userActivity.json"),
-};
-
-let gameData = {};
-
-// Initialize default data if files don't exist
-const defaultData = {
-  nations: [],
-  armyDeployment: [],
-  alliances: [],
-  newsLog: [],
-  chatLog: [],
-  userActivity: [],
-};
-
-function loadData() {
-  for (const key in dataFiles) {
-    try {
-      const data = fs.readFileSync(dataFiles[key], "utf8");
-      gameData[key] = JSON.parse(data);
-    } catch (error) {
-      if (error.code === "ENOENT") {
-        // File not found, initialize with default data
-        gameData[key] = defaultData[key];
-        saveData(key); // Save the default data
-      } else {
-        console.error(`Error loading ${key}.json:`, error);
-        gameData[key] = defaultData[key]; // Fallback to default
-      }
-    }
-  }
-  console.log("Game data loaded.");
-}
-
-function saveData(key) {
+// Helper to read JSON data
+function readJsonFile(filePath, defaultValue) {
   try {
-    fs.writeFileSync(
-      dataFiles[key],
-      JSON.stringify(gameData[key], null, 2),
-      "utf8"
-    );
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf8");
+      return JSON.parse(data);
+    }
   } catch (error) {
-    console.error(`Error saving ${key}.json:`, error);
+    console.error(`Error reading ${filePath}:`, error);
+  }
+  return defaultValue;
+}
+
+// Helper to write JSON data
+function writeJsonFile(filePath, data) {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+  } catch (error) {
+    console.error(`Error writing ${filePath}:`, error);
   }
 }
 
+// Nations data
 function getAllNations() {
-  return gameData.nations;
+  return readJsonFile(NATIONS_FILE, []);
 }
 
 function setAllNations(nations) {
-  gameData.nations = nations;
-  saveData("nations");
+  writeJsonFile(NATIONS_FILE, nations);
 }
 
+// Army Deployment data
 function getAllArmyDeployment() {
-  return gameData.armyDeployment;
+  return readJsonFile(ARMY_DEPLOYMENT_FILE, []);
 }
 
 function setAllArmyDeployment(armyDeployment) {
-  gameData.armyDeployment = armyDeployment;
-  saveData("armyDeployment");
+  writeJsonFile(ARMY_DEPLOYMENT_FILE, armyDeployment);
 }
 
-function getAllAlliances() {
-  return gameData.alliances;
-}
-
-function setAllAlliances(alliances) {
-  gameData.alliances = alliances;
-  saveData("alliances");
-}
-
+// News Log data
 function getAllNewsLog() {
-  return gameData.newsLog;
+  return readJsonFile(NEWS_LOG_FILE, []);
 }
 
 function setAllNewsLog(newsLog) {
-  gameData.newsLog = newsLog;
-  saveData("newsLog");
+  writeJsonFile(NEWS_LOG_FILE, newsLog);
 }
 
+// Alliances data
+function getAllAlliances() {
+  return readJsonFile(ALLIANCES_FILE, []);
+}
+
+function setAllAlliances(alliances) {
+  writeJsonFile(ALLIANCES_FILE, alliances);
+}
+
+// Chat Log data
 function getAllChatLog() {
-  return gameData.chatLog;
+  return readJsonFile(CHAT_LOG_FILE, []);
 }
 
 function setAllChatLog(chatLog) {
-  gameData.chatLog = chatLog;
-  saveData("chatLog");
+  writeJsonFile(CHAT_LOG_FILE, chatLog);
 }
 
+// User Activity data
 function getAllUserActivity() {
-  return gameData.userActivity;
+  return readJsonFile(USER_ACTIVITY_FILE, []);
 }
 
 function setAllUserActivity(userActivity) {
-  gameData.userActivity = userActivity;
-  saveData("userActivity");
+  writeJsonFile(USER_ACTIVITY_FILE, userActivity);
 }
 
-// Load data initially when the module is required
-loadData();
-
 module.exports = {
-  loadData,
   getAllNations,
   setAllNations,
   getAllArmyDeployment,
   setAllArmyDeployment,
-  getAllAlliances,
-  setAllAlliances,
   getAllNewsLog,
   setAllNewsLog,
+  getAllAlliances,
+  setAllAlliances,
   getAllChatLog,
   setAllChatLog,
   getAllUserActivity,
