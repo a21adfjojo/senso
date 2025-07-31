@@ -21,6 +21,7 @@ L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
 let nations = [];
 let geojsonLayer;
 let armyDeployment = [];
+let currentUserIp = null; // 現在のユーザーのIPアドレスを格納する変数
 
 async function fetchData(url, method = "GET", body = null) {
   const options = {
@@ -48,6 +49,7 @@ function loadNations() {
   fetchData("/api/nations").then((result) => {
     if (result.success) {
       nations = result.nations;
+      currentUserIp = result.currentUserIp; // ユーザーのIPアドレスを保存
       fetchData("/api/army-deployment").then((armyResult) => {
         if (armyResult.success) {
           armyDeployment = armyResult.armyDeployment;
@@ -280,9 +282,9 @@ function loadGeoJSON() {
 
           layer.on("click", async () => {
             const clickedCountryName = props.name;
-            const nation = nations.find((n) =>
+            const clickedNation = nations.find((n) =>
               n.territories.includes(clickedCountryName)
-            );
+            ); // クリックされた領土の所有国
 
             // 1. 国登録モードの場合
             if (isRegisteringNation) {
@@ -310,13 +312,10 @@ function loadGeoJSON() {
             // 2. 軍配置モードの場合 (自分の領土のみ)
             if (
               deployMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner === currentUserIp
             ) {
+              // clickedNation.owner === currentUserIp で自分の領土か確認
               const inf = parseInt(
                 document.getElementById("deployInfantry").value,
                 10
@@ -354,13 +353,10 @@ function loadGeoJSON() {
             // 3. 攻撃モードの場合 (他国の領土のみ)
             if (
               attackMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  !n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner !== currentUserIp
             ) {
+              // 他国の領土か確認
               const infantry = parseInt(
                 document.getElementById("attackInfantry").value,
                 10
@@ -397,12 +393,8 @@ function loadGeoJSON() {
               return;
             } else if (
               attackMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner === currentUserIp
             ) {
               alert("自分の領土を攻撃することはできません。");
               return;
@@ -411,13 +403,10 @@ function loadGeoJSON() {
             // 4. 爆撃モードの場合 (他国の領土のみ)
             if (
               bombardMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  !n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner !== currentUserIp
             ) {
+              // 他国の領土か確認
               if (
                 !confirm(`${props.name}を爆撃しますか？（爆撃機を1機消費）`)
               ) {
@@ -433,12 +422,8 @@ function loadGeoJSON() {
               return;
             } else if (
               bombardMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner === currentUserIp
             ) {
               alert("自分の領土を爆撃することはできません。");
               return;
@@ -447,13 +432,10 @@ function loadGeoJSON() {
             // 5. ミサイルモードの場合 (他国の領土のみ)
             if (
               missileMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  !n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner !== currentUserIp
             ) {
+              // 他国の領土か確認
               const missileCount = parseInt(
                 document.getElementById("missileCountInput").value,
                 10
@@ -480,7 +462,7 @@ function loadGeoJSON() {
                 const result = await fetchData("/api/launch-missile", "POST", {
                   targetCountryName: clickedCountryName,
                   missileCount: missileCount,
-                }); // missileCountを送信
+                });
                 alert(result.message);
                 loadNations();
               }, 10000);
@@ -489,12 +471,8 @@ function loadGeoJSON() {
               return;
             } else if (
               missileMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner === currentUserIp
             ) {
               alert("自分の領土にミサイルを発射することはできません。");
               return;
@@ -503,13 +481,10 @@ function loadGeoJSON() {
             // 6. 領土譲渡モード (自分の領土のみ)
             if (
               transferMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner === currentUserIp
             ) {
+              // 自分の領土か確認
               const targetNationName = document
                 .getElementById("transferNationName")
                 .value.trim();
@@ -529,42 +504,41 @@ function loadGeoJSON() {
               return;
             } else if (
               transferMode &&
-              nation &&
-              nations.find(
-                (n) =>
-                  n.owner === nation.owner &&
-                  !n.territories.includes(clickedCountryName)
-              )
+              clickedNation &&
+              clickedNation.owner !== currentUserIp
             ) {
               alert("他国の領土を譲渡することはできません。");
               return;
             }
 
             // 7. 通常クリック時の情報表示または領土購入
-            if (nation) {
-              const myNation = nations.find((n) => n.owner === nation.owner);
-              const isOwner = nation.owner === myIp; // ←ここを修正！
-              const deployment = armyDeployment.find(
-                (a) =>
-                  a.countryCode === clickedCountryName &&
-                  a.owner === nation.owner
-              );
-              const deployedInf = deployment ? deployment.infantry : 0;
-              const deployedTank = deployment ? deployment.tank : 0;
-              const deployedMechInf = deployment
-                ? deployment.mechanizedInfantry
-                : 0;
+            if (clickedNation) {
+              // 現在のユーザーがクリックされた国の所有者であるか判定
+              const isOwner =
+                currentUserIp && clickedNation.owner === currentUserIp;
 
               let info =
-                `<b>${nation.name}</b><br>所持者IP: ${nation.owner}<br>人口: ${nation.population}<br>` +
-                `石油: ${nation.oil}<br>` +
-                `鉄: ${nation.iron}<br>`;
+                `<b>${clickedNation.name}</b><br>所持者IP: ${clickedNation.owner}<br>人口: ${clickedNation.population}<br>` +
+                `石油: ${clickedNation.oil}<br>` +
+                `鉄: ${clickedNation.iron}<br>`;
 
+              // 所有者である場合のみ、軍備とお金の情報を追加
               if (isOwner) {
+                const deployment = armyDeployment.find(
+                  (a) =>
+                    a.countryCode === clickedCountryName &&
+                    a.owner === clickedNation.owner
+                );
+                const deployedInf = deployment ? deployment.infantry : 0;
+                const deployedTank = deployment ? deployment.tank : 0;
+                const deployedMechInf = deployment
+                  ? deployment.mechanizedInfantry
+                  : 0;
+
                 info +=
-                  `総兵力 - 歩兵: ${nation.infantry}, 戦車: ${nation.tank}, 機械化歩兵: ${nation.mechanizedInfantry}, 爆撃機: ${nation.bomber}, ミサイル: ${nation.missile}<br>` +
+                  `総兵力 - 歩兵: ${clickedNation.infantry}, 戦車: ${clickedNation.tank}, 機械化歩兵: ${clickedNation.mechanizedInfantry}, 爆撃機: ${clickedNation.bomber}, ミサイル: ${clickedNation.missile}<br>` +
                   `配置兵力 - 歩兵: ${deployedInf}, 戦車: ${deployedTank}, 機械化歩兵: ${deployedMechInf}<br>` +
-                  `お金: ${nation.money}<br>`;
+                  `お金: ${clickedNation.money}<br>`;
               }
 
               layer.bindPopup(info).openPopup();

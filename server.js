@@ -179,7 +179,14 @@ app.post("/api/reset-focus", (req, res) => {
   const userIp = req.ip;
   res.json(gameLogic.resetNationalFocus(userIp));
 });
-
+app.get("/api/nations", (req, res) => {
+  const userIp = req.ip; // 追加: 現在のユーザーのIPアドレスを取得
+  res.json({
+    success: true,
+    nations: gameLogic.getNations(),
+    currentUserIp: userIp,
+  }); // 変更: currentUserIpを追加して返却
+});
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
