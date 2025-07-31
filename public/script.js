@@ -543,7 +543,7 @@ function loadGeoJSON() {
             // 7. 通常クリック時の情報表示または領土購入
             if (nation) {
               const myNation = nations.find((n) => n.owner === nation.owner);
-              const isOwner = myNation && myNation.owner === nation.owner;
+              const isOwner = nation.owner === myIp; // ←ここを修正！
               const deployment = armyDeployment.find(
                 (a) =>
                   a.countryCode === clickedCountryName &&
